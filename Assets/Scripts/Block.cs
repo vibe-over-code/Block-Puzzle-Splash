@@ -13,10 +13,8 @@ public class Block : MonoBehaviour
     public Color blockColor = Color.green;
     public BlockType blockType = BlockType.Normal;
 
-    [Header("Special block visuals")]
-    [SerializeField] private Material specialBlockMaterial;
-    [SerializeField] private Color dynamiteTint = new Color(1f, 0.45f, 0.18f, 1f);
-    [SerializeField] private Color freezeTint = new Color(0.35f, 0.85f, 1f, 1f);
+    [Header("Block shader visuals")]
+    [SerializeField] private Material blockMaterial;
 
     private bool isDragging = false;
     private Vector3 offset;
@@ -138,15 +136,7 @@ public class Block : MonoBehaviour
 
     Color GetDisplayColor()
     {
-        switch (blockType)
-        {
-            case BlockType.Dynamite:
-                return dynamiteTint;
-            case BlockType.Freeze:
-                return freezeTint;
-            default:
-                return blockColor;
-        }
+        return blockColor;
     }
 
     void ApplyShaderType(SpriteRenderer spriteRenderer, BlockType type)
@@ -161,19 +151,20 @@ public class Block : MonoBehaviour
         spriteRenderer.GetPropertyBlock(properties);
         properties.SetFloat("_BlockType", (float)type);
         properties.SetColor("_BaseColor", GetDisplayColor());
+        properties.SetFloat("_IsOccupied", 1f);
         spriteRenderer.SetPropertyBlock(properties);
     }
 
     Material GetSpecialMaterial()
     {
-        if (specialBlockMaterial != null)
+        if (blockMaterial != null)
         {
-            return specialBlockMaterial;
+            return blockMaterial;
         }
 
         if (runtimeSpecialMaterial == null)
         {
-            Shader shader = Shader.Find("BlockPuzzle/SpecialBlockSprite");
+            Shader shader = Shader.Find("BlockPuzzle/BlockBlastBlockSprite");
             if (shader != null)
             {
                 runtimeSpecialMaterial = new Material(shader);

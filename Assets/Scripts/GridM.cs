@@ -8,6 +8,7 @@ public class GridM : MonoBehaviour
     public float cellSize = 0.1f;
     public GameObject cellPrefab;
     public GameObject blockPrefab;
+    public bool specialBlockMechanicsEnabled = false;
 
     private bool[,] gridState;
     private Cell[,] cells;
@@ -85,6 +86,18 @@ public class GridM : MonoBehaviour
         }
     }
 
+    public void FreeCellWithSandEffect(int x, int y, Vector2 flyDirection)
+    {
+        if (x < 0 || x >= width || y < 0 || y >= height)
+            return;
+
+        gridState[x, y] = false;
+        if (cells[x, y] != null)
+        {
+            cells[x, y].FreeWithSandEffect(flyDirection);
+        }
+    }
+
     public void PrintGridState()
     {
         string grid = "";
@@ -138,6 +151,11 @@ public class GridM : MonoBehaviour
 
     public void PlaceBlock(Vector2Int[] shape, int originX, int originY, Color blockColor, BlockType blockType)
     {
+        if (!specialBlockMechanicsEnabled)
+        {
+            blockType = BlockType.Normal;
+        }
+
         List<Vector2Int> placedCells = new List<Vector2Int>();
         for (int i = 0; i < shape.Length; i++)
         {
@@ -283,7 +301,8 @@ public class GridM : MonoBehaviour
     {
         for (int x = 0; x < width; x++)
         {
-            FreeCell(x, y);
+            float sidePush = x < width * 0.5f ? -0.35f : 0.35f;
+            FreeCellWithSandEffect(x, y, new Vector2(sidePush, 1f));
         }
         Debug.Log($"Cleared row {y}.");
     }
@@ -292,7 +311,8 @@ public class GridM : MonoBehaviour
     {
         for (int y = 0; y < height; y++)
         {
-            FreeCell(x, y);
+            float sidePush = y < height * 0.5f ? -0.25f : 0.25f;
+            FreeCellWithSandEffect(x, y, new Vector2(sidePush, 1f));
         }
         Debug.Log($"Cleared column {x}.");
     }

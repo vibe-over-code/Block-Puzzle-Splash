@@ -1,12 +1,15 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class BlockSpawner : MonoBehaviour
 {
     public GameObject[] blockPrefabs;
+    public GameObject[] specialBlockPrefabs;
     public Transform spawnAreaStart;
     public int blocksCount = 3;
     public float spacing = 120f;
-    public bool spawnSpecialBlocks = true;
+    public float spawnPadding = 0.25f;
+    public bool spawnSpecialBlocks = false;
 
     private int currentBlocksCount;
     private bool isRespawning = false;
@@ -26,52 +29,115 @@ public class BlockSpawner : MonoBehaviour
         ClearBlocks();
         currentBlocksCount = blocksCount;
 
+        List<GameObject> spawnedBlocks = new List<GameObject>();
         for (int i = 0; i < blocksCount; i++)
         {
-            SpawnRandomBlockAtPosition(i);
+            GameObject spawnedBlock = SpawnRandomBlockAtPosition();
+            if (spawnedBlock != null)
+            {
+                spawnedBlocks.Add(spawnedBlock);
+            }
         }
+
+        ArrangeSpawnedBlocks(spawnedBlocks);
 
         isRespawning = false;
         CheckGameOver();
     }
 
-    void SpawnRandomBlockAtPosition(int index)
+    GameObject SpawnRandomBlockAtPosition()
     {
         if (blockPrefabs == null || blockPrefabs.Length == 0)
         {
             Debug.LogError("No block prefabs available for spawning.");
-            return;
+            return null;
         }
 
-        int randomIndex = Random.Range(0, blockPrefabs.Length);
-        GameObject blockToSpawn = blockPrefabs[randomIndex];
+        GameObject blockToSpawn = PickRandomSpawnPrefab();
+        if (blockToSpawn == null)
+        {
+            Debug.LogError("No valid block prefab was found.");
+            return null;
+        }
 
         Vector3 startPos = spawnAreaStart != null ? spawnAreaStart.position : new Vector3(5.5f, 3f, 0);
-        Vector3 spawnPos = new Vector3(startPos.x, startPos.y - (index * spacing), startPos.z);
+        return Instantiate(blockToSpawn, startPos, Quaternion.identity);
+    }
 
-        GameObject spawnedBlock = Instantiate(blockToSpawn, spawnPos, Quaternion.identity);
-        Block blockComponent = spawnedBlock.GetComponent<Block>();
-        if (blockComponent != null)
+    void ArrangeSpawnedBlocks(List<GameObject> spawnedBlocks)
+    {
+        if (spawnedBlocks == null || spawnedBlocks.Count == 0)
+            return;
+
+        Vector3 startPos = spawnAreaStart != null ? spawnAreaStart.position : new Vector3(5.5f, 3f, 0);
+        float nextTopY = startPos.y;
+
+        for (int i = 0; i < spawnedBlocks.Count; i++)
         {
-            blockComponent.SetBlockType(RollBlockType());
+            GameObject spawnedBlock = spawnedBlocks[i];
+            if (spawnedBlock == null)
+                continue;
+
+            spawnedBlock.transform.position = new Vector3(startPos.x, nextTopY, startPos.z);
+            Bounds bounds = GetRendererBounds(spawnedBlock);
+            Vector3 correction = new Vector3(startPos.x - bounds.center.x, nextTopY - bounds.max.y, 0f);
+            spawnedBlock.transform.position += correction;
+
+            bounds = GetRendererBounds(spawnedBlock);
+            nextTopY = bounds.min.y - spawnPadding;
         }
     }
 
-    BlockType RollBlockType()
+    Bounds GetRendererBounds(GameObject block)
     {
-        if (!spawnSpecialBlocks)
-            return BlockType.Normal;
-
-        int randomType = Random.Range(0, 3);
-        switch (randomType)
+        Renderer[] renderers = block.GetComponentsInChildren<Renderer>();
+        if (renderers.Length == 0)
         {
-            case 1:
-                return BlockType.Dynamite;
-            case 2:
-                return BlockType.Freeze;
-            default:
-                return BlockType.Normal;
+            return new Bounds(block.transform.position, Vector3.one);
         }
+
+        Bounds bounds = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
+        {
+            bounds.Encapsulate(renderers[i].bounds);
+        }
+
+        return bounds;
+    }
+
+    GameObject PickRandomSpawnPrefab()
+    {
+        if (!spawnSpecialBlocks || specialBlockPrefabs == null || specialBlockPrefabs.Length == 0)
+        {
+            int randomIndex = Random.Range(0, blockPrefabs.Length);
+            return blockPrefabs[randomIndex];
+        }
+
+        int totalPrefabs = blockPrefabs.Length + specialBlockPrefabs.Length;
+        int selectedIndex = Random.Range(0, totalPrefabs);
+        if (selectedIndex < blockPrefabs.Length)
+            return blockPrefabs[selectedIndex];
+
+        return specialBlockPrefabs[selectedIndex - blockPrefabs.Length];
+    }
+
+    GameObject[] GetActiveSpawnPrefabs()
+    {
+        if (!spawnSpecialBlocks || specialBlockPrefabs == null || specialBlockPrefabs.Length == 0)
+            return blockPrefabs;
+
+        GameObject[] activePrefabs = new GameObject[blockPrefabs.Length + specialBlockPrefabs.Length];
+        for (int i = 0; i < blockPrefabs.Length; i++)
+        {
+            activePrefabs[i] = blockPrefabs[i];
+        }
+
+        for (int i = 0; i < specialBlockPrefabs.Length; i++)
+        {
+            activePrefabs[blockPrefabs.Length + i] = specialBlockPrefabs[i];
+        }
+
+        return activePrefabs;
     }
 
     void ClearBlocks()
@@ -111,7 +177,7 @@ public class BlockSpawner : MonoBehaviour
             gridManager = FindFirstObjectByType<GridM>();
         }
 
-        bool canPlace = gridManager.CanPlaceAnyBlock(blockPrefabs);
+        bool canPlace = gridManager.CanPlaceAnyBlock(GetActiveSpawnPrefabs());
 
         if (!canPlace)
         {
