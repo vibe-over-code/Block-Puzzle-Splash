@@ -212,13 +212,32 @@ public class Cell : MonoBehaviour
 
     public void SetHighlight(bool canPlace)
     {
+        SetHighlight(canPlace, canPlace ? new Color(0.35f, 1f, 0.45f, 1f) : new Color(1f, 0.25f, 0.2f, 1f));
+    }
+
+    public void SetHighlight(bool canPlace, Color previewColor)
+    {
         if (spriteRenderer != null)
         {
             originalColor = spriteRenderer.color;
-            if (canPlace)
-                spriteRenderer.color = new Color(0.5f, 1f, 0.5f, 0.7f);
-            else
-                spriteRenderer.color = new Color(1f, 0.5f, 0.5f, 0.7f);
+            Color highlightColor = canPlace ? previewColor : new Color(1f, 0.16f, 0.12f, 1f);
+            highlightColor.a = canPlace ? 0.82f : 0.92f;
+            spriteRenderer.color = highlightColor;
+
+            Material material = GetSpecialMaterial();
+            if (material != null)
+            {
+                spriteRenderer.sharedMaterial = material;
+            }
+
+            MaterialPropertyBlock properties = new MaterialPropertyBlock();
+            spriteRenderer.GetPropertyBlock(properties);
+            properties.SetFloat("_BlockType", 0f);
+            properties.SetColor("_BaseColor", highlightColor);
+            properties.SetFloat("_FreezeTurnsLeft", 0f);
+            properties.SetFloat("_IsOccupied", 1f);
+            spriteRenderer.SetPropertyBlock(properties);
+
             isHighlighted = true;
         }
     }

@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: back
-  m_Shader: {fileID: 4800000, guid: e260cfa7296ee7642b167f1eb5be5023, type: 3}
+  m_Shader: {fileID: 4800000, guid: 85376e278d8b4bd4ebb83d89f53aa934, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -42,9 +42,29 @@ Material:
     m_Ints: []
     m_Floats:
     - _EnableExternalAlpha: 0
+    - _GridSize: 10
+    - _GridThickness: 0.03
+    - _LayerScale: 8
+    - _RotationSpeed: 0.2
+    - _Scale: 4
+    - _ShapeAlpha: 0.5
+    - _ShapeDensity: 7
+    - _ShapeScale: 0.55
+    - _ShapeSpeed: 0.12
+    - _Speed: 0.5
+    - _TunnelSpeed: 0.5
     - _ZWrite: 0
     m_Colors:
+    - _BaseColor: {r: 0.11, g: 0.14, b: 0.2, a: 1}
+    - _CellColor: {r: 0.09999997, g: 0.11999995, b: 0.14999998, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _GlowColor: {r: 0.2, g: 0.28, b: 0.42, a: 1}
+    - _GridColor: {r: 0.19999996, g: 0.19999996, b: 0.24999997, a: 1}
+    - _MainColor: {r: 0.09999997, g: 0.09999997, b: 0.11999995, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ScrollSpeed: {r: 0.1, g: 0.05, b: 0, a: 0}
+    - _SecondaryColor: {r: 0.14999998, g: 0.14999998, b: 0.17999998, a: 1}
+    - _ShapeColor: {r: 0.16, g: 0.34, b: 0.62, a: 1}
+    - _ShapeGlowColor: {r: 0.36, g: 0.72, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

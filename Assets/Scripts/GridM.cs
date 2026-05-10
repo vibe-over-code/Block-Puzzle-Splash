@@ -217,14 +217,14 @@ public class GridM : MonoBehaviour
 
     void CheckLines()
     {
-        int clearedLines = 0;
+        List<int> rowsToClear = new List<int>();
+        List<int> columnsToClear = new List<int>();
 
         for (int y = 0; y < height; y++)
         {
             if (IsRowClearable(y))
             {
-                ClearRow(y);
-                clearedLines++;
+                rowsToClear.Add(y);
             }
         }
 
@@ -232,10 +232,32 @@ public class GridM : MonoBehaviour
         {
             if (IsColumnClearable(x))
             {
-                ClearColumn(x);
-                clearedLines++;
+                columnsToClear.Add(x);
             }
         }
+
+        int clearedLines = rowsToClear.Count + columnsToClear.Count;
+        if (clearedLines == 0)
+            return;
+
+        bool[,] cellsToClear = new bool[width, height];
+        foreach (int row in rowsToClear)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                cellsToClear[x, row] = true;
+            }
+        }
+
+        foreach (int column in columnsToClear)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                cellsToClear[column, y] = true;
+            }
+        }
+
+        ClearCollectedCells(cellsToClear);
 
         if (clearedLines > 0)
         {
@@ -246,6 +268,27 @@ public class GridM : MonoBehaviour
 
             ScoreManager.Instance?.AddScore(linePoints);
             Debug.Log($"Cleared {clearedLines} lines. +{linePoints} points.");
+        }
+    }
+
+    void ClearCollectedCells(bool[,] cellsToClear)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (!cellsToClear[x, y])
+                    continue;
+
+                Vector2 center = new Vector2((width - 1) * 0.5f, (height - 1) * 0.5f);
+                Vector2 fromCenter = new Vector2(x - center.x, y - center.y);
+                if (fromCenter == Vector2.zero)
+                {
+                    fromCenter = Vector2.up;
+                }
+
+                FreeCellWithSandEffect(x, y, fromCenter.normalized);
+            }
         }
     }
 
@@ -337,6 +380,11 @@ public class GridM : MonoBehaviour
 
     public void HighlightCells(Vector2Int[] shape, int originX, int originY, bool canPlace)
     {
+        HighlightCells(shape, originX, originY, canPlace, canPlace ? new Color(0.35f, 1f, 0.45f, 1f) : new Color(1f, 0.25f, 0.2f, 1f));
+    }
+
+    public void HighlightCells(Vector2Int[] shape, int originX, int originY, bool canPlace, Color previewColor)
+    {
         ClearHighlight();
 
         for (int i = 0; i < shape.Length; i++)
@@ -348,7 +396,7 @@ public class GridM : MonoBehaviour
             {
                 if (cells[cellX, cellY] != null)
                 {
-                    cells[cellX, cellY].SetHighlight(canPlace);
+                    cells[cellX, cellY].SetHighlight(canPlace, previewColor);
                 }
             }
         }

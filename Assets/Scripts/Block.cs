@@ -185,6 +185,6 @@ public class Block : MonoBehaviour
         Vector2Int targetOrigin = new Vector2Int(gridPos.x - offsetToOrigin.x, gridPos.y - offsetToOrigin.y);
 
         bool canPlace = gridManager.CanPlaceBlock(shape, targetOrigin.x, targetOrigin.y);
-        gridManager.HighlightCells(shape, targetOrigin.x, targetOrigin.y, canPlace);
+        gridManager.HighlightCells(shape, targetOrigin.x, targetOrigin.y, canPlace, blockColor);
     }
 }
