@@ -8,7 +8,6 @@ public class GridM : MonoBehaviour
     public float cellSize = 0.1f;
     public GameObject cellPrefab;
     public GameObject blockPrefab;
-    public bool specialBlockMechanicsEnabled = false;
 
     private bool[,] gridState;
     private Cell[,] cells;
@@ -54,18 +53,13 @@ public class GridM : MonoBehaviour
 
     public void OccupyCellWithColor(int x, int y, Color blockColor)
     {
-        OccupyCellWithColor(x, y, blockColor, BlockType.Normal, 0);
-    }
-
-    public void OccupyCellWithColor(int x, int y, Color blockColor, BlockType blockType, int freezeTurnsLeft = 0)
-    {
         if (x < 0 || x >= width || y < 0 || y >= height)
             return;
 
         gridState[x, y] = true;
         if (cells[x, y] != null)
         {
-            cells[x, y].Occupy(blockColor, blockType, freezeTurnsLeft);
+            cells[x, y].Occupy(blockColor);
         }
     }
 
@@ -146,73 +140,15 @@ public class GridM : MonoBehaviour
 
     public void PlaceBlock(Vector2Int[] shape, int originX, int originY, Color blockColor)
     {
-        PlaceBlock(shape, originX, originY, blockColor, BlockType.Normal);
-    }
-
-    public void PlaceBlock(Vector2Int[] shape, int originX, int originY, Color blockColor, BlockType blockType)
-    {
-        if (!specialBlockMechanicsEnabled)
-        {
-            blockType = BlockType.Normal;
-        }
-
-        List<Vector2Int> placedCells = new List<Vector2Int>();
         for (int i = 0; i < shape.Length; i++)
         {
             int cellX = originX + shape[i].x;
             int cellY = originY + shape[i].y;
-            placedCells.Add(new Vector2Int(cellX, cellY));
-            OccupyCellWithColor(cellX, cellY, blockColor, blockType, blockType == BlockType.Freeze ? 3 : 0);
+            OccupyCellWithColor(cellX, cellY, blockColor);
         }
 
         AddScoreForBlock(shape);
-
-        if (blockType == BlockType.Dynamite)
-        {
-            ExplodeAround(placedCells);
-            return;
-        }
-
-        TickFreezeBlocks(blockType == BlockType.Freeze ? placedCells : null);
         CheckLines();
-    }
-
-    void ExplodeAround(List<Vector2Int> placedCells)
-    {
-        foreach (Vector2Int placedCell in placedCells)
-        {
-            for (int dx = -1; dx <= 1; dx++)
-            {
-                for (int dy = -1; dy <= 1; dy++)
-                {
-                    int targetX = placedCell.x + dx;
-                    int targetY = placedCell.y + dy;
-                    if (targetX >= 0 && targetX < width && targetY >= 0 && targetY < height)
-                    {
-                        FreeCell(targetX, targetY);
-                    }
-                }
-            }
-        }
-
-        Debug.Log("Dynamite exploded. Lines are not scored after the explosion.");
-    }
-
-    void TickFreezeBlocks(List<Vector2Int> newlyFrozenCells)
-    {
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                if (newlyFrozenCells != null && newlyFrozenCells.Contains(new Vector2Int(x, y)))
-                    continue;
-
-                if (cells[x, y] != null)
-                {
-                    cells[x, y].TickFreeze();
-                }
-            }
-        }
     }
 
     void CheckLines()
@@ -222,7 +158,7 @@ public class GridM : MonoBehaviour
 
         for (int y = 0; y < height; y++)
         {
-            if (IsRowClearable(y))
+            if (IsRowFull(y))
             {
                 rowsToClear.Add(y);
             }
@@ -230,7 +166,7 @@ public class GridM : MonoBehaviour
 
         for (int x = 0; x < width; x++)
         {
-            if (IsColumnClearable(x))
+            if (IsColumnFull(x))
             {
                 columnsToClear.Add(x);
             }
@@ -309,34 +245,6 @@ public class GridM : MonoBehaviour
             if (!gridState[x, y])
                 return false;
         }
-        return true;
-    }
-
-    bool IsRowClearable(int y)
-    {
-        if (!IsRowFull(y))
-            return false;
-
-        for (int x = 0; x < width; x++)
-        {
-            if (cells[x, y] != null && cells[x, y].IsFrozen())
-                return false;
-        }
-
-        return true;
-    }
-
-    bool IsColumnClearable(int x)
-    {
-        if (!IsColumnFull(x))
-            return false;
-
-        for (int y = 0; y < height; y++)
-        {
-            if (cells[x, y] != null && cells[x, y].IsFrozen())
-                return false;
-        }
-
         return true;
     }
 

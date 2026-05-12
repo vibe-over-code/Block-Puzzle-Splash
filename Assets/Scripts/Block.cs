@@ -1,17 +1,9 @@
 using UnityEngine;
 
-public enum BlockType
-{
-    Normal,
-    Dynamite,
-    Freeze
-}
-
 public class Block : MonoBehaviour
 {
     public Vector2Int[] shape;
     public Color blockColor = Color.green;
-    public BlockType blockType = BlockType.Normal;
 
     [Header("Block shader visuals")]
     [SerializeField] private Material blockMaterial;
@@ -81,7 +73,7 @@ public class Block : MonoBehaviour
 
         if (gridManager.CanPlaceBlock(shape, targetOrigin.x, targetOrigin.y))
         {
-            gridManager.PlaceBlock(shape, targetOrigin.x, targetOrigin.y, blockColor, blockType);
+            gridManager.PlaceBlock(shape, targetOrigin.x, targetOrigin.y, blockColor);
 
             BlockSpawner spawner = FindFirstObjectByType<BlockSpawner>();
             if (spawner != null)
@@ -118,19 +110,13 @@ public class Block : MonoBehaviour
         transform.position = initialSpawnPosition;
     }
 
-    public void SetBlockType(BlockType newBlockType)
-    {
-        blockType = newBlockType;
-        ApplyVisuals();
-    }
-
     void ApplyVisuals()
     {
         SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>();
         foreach (var r in renderers)
         {
             r.color = GetDisplayColor();
-            ApplyShaderType(r, blockType);
+            ApplyShader(r);
         }
     }
 
@@ -139,7 +125,7 @@ public class Block : MonoBehaviour
         return blockColor;
     }
 
-    void ApplyShaderType(SpriteRenderer spriteRenderer, BlockType type)
+    void ApplyShader(SpriteRenderer spriteRenderer)
     {
         Material material = GetSpecialMaterial();
         if (material != null)
@@ -149,7 +135,6 @@ public class Block : MonoBehaviour
 
         MaterialPropertyBlock properties = new MaterialPropertyBlock();
         spriteRenderer.GetPropertyBlock(properties);
-        properties.SetFloat("_BlockType", (float)type);
         properties.SetColor("_BaseColor", GetDisplayColor());
         properties.SetFloat("_IsOccupied", 1f);
         spriteRenderer.SetPropertyBlock(properties);

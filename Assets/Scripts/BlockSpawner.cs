@@ -4,13 +4,11 @@ using System.Collections.Generic;
 public class BlockSpawner : MonoBehaviour
 {
     public GameObject[] blockPrefabs;
-    public GameObject[] specialBlockPrefabs;
     public Transform spawnAreaStart;
     public int blocksCount = 3;
     public float spacing = 120f;
     public float spawnPadding = 0.25f;
     public int maxVerticalBlocks = 9;
-    public bool spawnSpecialBlocks = false;
 
     private int currentBlocksCount;
     private bool isRespawning = false;
@@ -125,37 +123,8 @@ public class BlockSpawner : MonoBehaviour
 
     GameObject PickRandomSpawnPrefab()
     {
-        if (!spawnSpecialBlocks || specialBlockPrefabs == null || specialBlockPrefabs.Length == 0)
-        {
-            int randomIndex = Random.Range(0, blockPrefabs.Length);
-            return blockPrefabs[randomIndex];
-        }
-
-        int totalPrefabs = blockPrefabs.Length + specialBlockPrefabs.Length;
-        int selectedIndex = Random.Range(0, totalPrefabs);
-        if (selectedIndex < blockPrefabs.Length)
-            return blockPrefabs[selectedIndex];
-
-        return specialBlockPrefabs[selectedIndex - blockPrefabs.Length];
-    }
-
-    GameObject[] GetActiveSpawnPrefabs()
-    {
-        if (!spawnSpecialBlocks || specialBlockPrefabs == null || specialBlockPrefabs.Length == 0)
-            return blockPrefabs;
-
-        GameObject[] activePrefabs = new GameObject[blockPrefabs.Length + specialBlockPrefabs.Length];
-        for (int i = 0; i < blockPrefabs.Length; i++)
-        {
-            activePrefabs[i] = blockPrefabs[i];
-        }
-
-        for (int i = 0; i < specialBlockPrefabs.Length; i++)
-        {
-            activePrefabs[blockPrefabs.Length + i] = specialBlockPrefabs[i];
-        }
-
-        return activePrefabs;
+        int randomIndex = Random.Range(0, blockPrefabs.Length);
+        return blockPrefabs[randomIndex];
     }
 
     void ClearBlocks()
@@ -195,7 +164,7 @@ public class BlockSpawner : MonoBehaviour
             gridManager = FindFirstObjectByType<GridM>();
         }
 
-        bool canPlace = gridManager.CanPlaceAnyBlock(GetActiveSpawnPrefabs());
+        bool canPlace = gridManager.CanPlaceAnyBlock(blockPrefabs);
 
         if (!canPlace)
         {

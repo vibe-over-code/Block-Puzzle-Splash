@@ -6,8 +6,6 @@ public class Cell : MonoBehaviour
     public int x;
     public int y;
     public bool isOccupied = false;
-    public BlockType blockType = BlockType.Normal;
-    public int freezeTurnsLeft = 0;
     public float clearEffectDuration = 0.55f;
     public float clearEffectFlyDistance = 0.35f;
 
@@ -26,7 +24,7 @@ public class Cell : MonoBehaviour
         gridManager = FindFirstObjectByType<GridM>();
         defaultColor = Color.white;
         SetColor(defaultColor);
-        ApplyShaderType(BlockType.Normal);
+        ApplyShader();
 
         if (gridManager == null)
         {
@@ -36,27 +34,18 @@ public class Cell : MonoBehaviour
 
     public void Occupy(Color blockColor)
     {
-        Occupy(blockColor, BlockType.Normal, 0);
-    }
-
-    public void Occupy(Color blockColor, BlockType newBlockType, int newFreezeTurnsLeft = 0)
-    {
         isOccupied = true;
-        blockType = newBlockType;
-        freezeTurnsLeft = newBlockType == BlockType.Freeze ? newFreezeTurnsLeft : 0;
         currentColor = blockColor;
         SetColor(currentColor);
-        ApplyShaderType(blockType);
+        ApplyShader();
     }
 
     public void Free()
     {
         isOccupied = false;
-        blockType = BlockType.Normal;
-        freezeTurnsLeft = 0;
         currentColor = defaultColor;
         SetColor(defaultColor);
-        ApplyShaderType(BlockType.Normal);
+        ApplyShader();
     }
 
     public void FreeWithSandEffect(Vector2 flyDirection)
@@ -89,29 +78,7 @@ public class Cell : MonoBehaviour
         }
     }
 
-    public bool IsFrozen()
-    {
-        return isOccupied && blockType == BlockType.Freeze && freezeTurnsLeft > 0;
-    }
-
-    public void TickFreeze()
-    {
-        if (!IsFrozen())
-            return;
-
-        freezeTurnsLeft--;
-        if (freezeTurnsLeft <= 0)
-        {
-            blockType = BlockType.Normal;
-            ApplyShaderType(BlockType.Normal);
-        }
-        else
-        {
-            ApplyShaderType(BlockType.Freeze);
-        }
-    }
-
-    void ApplyShaderType(BlockType type)
+    void ApplyShader()
     {
         if (spriteRenderer == null)
             return;
@@ -124,9 +91,7 @@ public class Cell : MonoBehaviour
 
         MaterialPropertyBlock properties = new MaterialPropertyBlock();
         spriteRenderer.GetPropertyBlock(properties);
-        properties.SetFloat("_BlockType", (float)type);
         properties.SetColor("_BaseColor", currentColor);
-        properties.SetFloat("_FreezeTurnsLeft", freezeTurnsLeft);
         properties.SetFloat("_IsOccupied", isOccupied ? 1f : 0f);
         spriteRenderer.SetPropertyBlock(properties);
     }
@@ -232,9 +197,7 @@ public class Cell : MonoBehaviour
 
             MaterialPropertyBlock properties = new MaterialPropertyBlock();
             spriteRenderer.GetPropertyBlock(properties);
-            properties.SetFloat("_BlockType", 0f);
             properties.SetColor("_BaseColor", highlightColor);
-            properties.SetFloat("_FreezeTurnsLeft", 0f);
             properties.SetFloat("_IsOccupied", 1f);
             spriteRenderer.SetPropertyBlock(properties);
 
@@ -250,7 +213,7 @@ public class Cell : MonoBehaviour
                 spriteRenderer.color = currentColor;
             else
                 spriteRenderer.color = defaultColor;
-            ApplyShaderType(blockType);
+            ApplyShader();
             isHighlighted = false;
         }
     }
