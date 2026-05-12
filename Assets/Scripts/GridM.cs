@@ -149,12 +149,16 @@ public class GridM : MonoBehaviour
 
         AddScoreForBlock(shape);
         CheckLines();
+        AudioManager.Instance?.PlayBlockPlaceSound();
     }
+
+    private List<int> rowsToClear = new List<int>();
+    private List<int> columnsToClear = new List<int>();
 
     void CheckLines()
     {
-        List<int> rowsToClear = new List<int>();
-        List<int> columnsToClear = new List<int>();
+        rowsToClear.Clear();
+        columnsToClear.Clear();
 
         for (int y = 0; y < height; y++)
         {
@@ -209,12 +213,14 @@ public class GridM : MonoBehaviour
 
     void ClearCollectedCells(bool[,] cellsToClear)
     {
+        int clearedCells = 0;
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
                 if (!cellsToClear[x, y])
                     continue;
+                clearedCells++;
 
                 Vector2 center = new Vector2((width - 1) * 0.5f, (height - 1) * 0.5f);
                 Vector2 fromCenter = new Vector2(x - center.x, y - center.y);
@@ -225,6 +231,13 @@ public class GridM : MonoBehaviour
 
                 FreeCellWithSandEffect(x, y, fromCenter.normalized);
             }
+        }
+        
+        // Play sound for cleared lines
+        int clearedLines = rowsToClear.Count + columnsToClear.Count;
+        if (clearedCells > 0)
+        {
+            AudioManager.Instance?.PlayLineClearSound(clearedLines);
         }
     }
 

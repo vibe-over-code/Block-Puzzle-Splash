@@ -25,7 +25,6 @@ public class UIManager : MonoBehaviour
 
     private void RestartGame()
     {
-        Debug.Log("Перезапуск игры...");
 
         if (gridManager != null)
         {
@@ -51,15 +50,16 @@ public class UIManager : MonoBehaviour
     {
         if (hasRefreshed)
         {
-            Debug.Log("Обновление фигур доступно только один раз до рестарта!");
+            Debug.Log("РћР±РЅРѕРІР»РµРЅРёРµ Р±Р»РѕРєРѕРІ РґРѕСЃС‚СѓРїРЅРѕ С‚РѕР»СЊРєРѕ РѕРґРёРЅ СЂР°Р· Р·Р° РёРіСЂСѓ!");
             return;
         }
 
-        Debug.Log("Обновляем фигуры...");
+        Debug.Log("РћР±РЅРѕРІР»СЏРµРј Р±Р»РѕРєРё...");
 
         if (blockSpawner != null)
         {
             blockSpawner.RefreshBlocks();
+            AudioManager.Instance?.PlayBlocksRefreshSound();
         }
 
         hasRefreshed = true;
