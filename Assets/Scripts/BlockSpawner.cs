@@ -9,6 +9,7 @@ public class BlockSpawner : MonoBehaviour
     public int blocksCount = 3;
     public float spacing = 120f;
     public float spawnPadding = 0.25f;
+    public int maxVerticalBlocks = 9;
     public bool spawnSpecialBlocks = false;
 
     private int currentBlocksCount;
@@ -71,6 +72,9 @@ public class BlockSpawner : MonoBehaviour
 
         Vector3 startPos = spawnAreaStart != null ? spawnAreaStart.position : new Vector3(5.5f, 3f, 0);
         float nextTopY = startPos.y;
+        float columnCenterX = startPos.x;
+        float columnHeight = 0f;
+        float columnWidth = 0f;
 
         for (int i = 0; i < spawnedBlocks.Count; i++)
         {
@@ -78,13 +82,27 @@ public class BlockSpawner : MonoBehaviour
             if (spawnedBlock == null)
                 continue;
 
-            spawnedBlock.transform.position = new Vector3(startPos.x, nextTopY, startPos.z);
+            spawnedBlock.transform.position = new Vector3(columnCenterX, nextTopY, startPos.z);
             Bounds bounds = GetRendererBounds(spawnedBlock);
-            Vector3 correction = new Vector3(startPos.x - bounds.center.x, nextTopY - bounds.max.y, 0f);
+            float blockHeight = bounds.size.y;
+
+            if (columnHeight > 0f && columnHeight + spawnPadding + blockHeight > maxVerticalBlocks)
+            {
+                columnCenterX += columnWidth * 0.5f + spawnPadding + bounds.size.x * 0.5f;
+                nextTopY = startPos.y;
+                columnHeight = 0f;
+                columnWidth = 0f;
+            }
+
+            spawnedBlock.transform.position = new Vector3(columnCenterX, nextTopY, startPos.z);
+            bounds = GetRendererBounds(spawnedBlock);
+            Vector3 correction = new Vector3(columnCenterX - bounds.center.x, nextTopY - bounds.max.y, 0f);
             spawnedBlock.transform.position += correction;
 
             bounds = GetRendererBounds(spawnedBlock);
             nextTopY = bounds.min.y - spawnPadding;
+            columnHeight += blockHeight + (columnHeight > 0f ? spawnPadding : 0f);
+            columnWidth = Mathf.Max(columnWidth, bounds.size.x);
         }
     }
 

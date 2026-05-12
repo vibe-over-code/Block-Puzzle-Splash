@@ -154,9 +154,9 @@ RectTransform:
   - {fileID: 549054044}
   m_Father: {fileID: 300894464}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.6125209, y: 0.045407407}
-  m_AnchorMax: {x: 0.68666685, y: 0.127}
-  m_AnchoredPosition: {x: 0, y: 0.5001221}
+  m_AnchorMin: {x: 0.90200007, y: 0.882}
+  m_AnchorMax: {x: 0.9765209, y: 0.96400005}
+  m_AnchoredPosition: {x: -0.5, y: 0.00012207031}
   m_SizeDelta: {x: -40, y: -25}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &71487176
@@ -1133,7 +1133,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 49.83408, y: 49.83408, z: 49.83408}
+  m_LocalScale: {x: 30.239798, y: 30.239798, z: 30.239798}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1255,9 +1255,9 @@ RectTransform:
   - {fileID: 1537893216}
   m_Father: {fileID: 300894464}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.48179162, y: 0.045407407}
-  m_AnchorMax: {x: 0.55525, y: 0.127}
-  m_AnchoredPosition: {x: 0, y: 0.5001221}
+  m_AnchorMin: {x: 0.7713333, y: 0.883}
+  m_AnchorMax: {x: 0.84535426, y: 0.96400005}
+  m_AnchoredPosition: {x: -0.49993896, y: 0.00012207031}
   m_SizeDelta: {x: -40, y: -25}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &1307639807
@@ -1307,7 +1307,7 @@ Transform:
   m_GameObject: {fileID: 1323606417}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 7, y: 3, z: 0}
+  m_LocalPosition: {x: 8.02, y: 3.28, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1348,9 +1348,9 @@ RectTransform:
   - {fileID: 190315745}
   m_Father: {fileID: 300894464}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.34852085, y: 0.045407407}
-  m_AnchorMax: {x: 0.42400002, y: 0.127}
-  m_AnchoredPosition: {x: -0.5, y: 0.5}
+  m_AnchorMin: {x: 0.6374792, y: 0.882}
+  m_AnchorMax: {x: 0.7134792, y: 0.96400005}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -41, y: -25}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1502631373
@@ -1883,6 +1883,7 @@ MonoBehaviour:
   blocksCount: 3
   spacing: 3.5
   spawnPadding: 0.25
+  maxVerticalBlocks: 9
   spawnSpecialBlocks: 0
 --- !u!4 &2097594165
 Transform:
