@@ -1,9 +1,19 @@
 using UnityEngine;
 
+public enum BlockType
+{
+    Normal,
+    Dynamite
+}
+
 public class Block : MonoBehaviour
 {
     public Vector2Int[] shape;
     public Color blockColor = Color.green;
+    public BlockType blockType = BlockType.Normal;
+
+    [Header("Dynamite")]
+    [SerializeField] private int explosionRadius = 1;
 
     [Header("Block shader visuals")]
     [SerializeField] private Material blockMaterial;
@@ -73,7 +83,14 @@ public class Block : MonoBehaviour
 
         if (gridManager.CanPlaceBlock(shape, targetOrigin.x, targetOrigin.y))
         {
-            gridManager.PlaceBlock(shape, targetOrigin.x, targetOrigin.y, blockColor);
+            if (blockType == BlockType.Dynamite)
+            {
+                gridManager.PlaceDynamite(targetOrigin.x, targetOrigin.y, explosionRadius, blockColor);
+            }
+            else
+            {
+                gridManager.PlaceBlock(shape, targetOrigin.x, targetOrigin.y, blockColor);
+            }
 
             BlockSpawner spawner = FindFirstObjectByType<BlockSpawner>();
             if (spawner != null)
@@ -170,6 +187,13 @@ public class Block : MonoBehaviour
         Vector2Int targetOrigin = new Vector2Int(gridPos.x - offsetToOrigin.x, gridPos.y - offsetToOrigin.y);
 
         bool canPlace = gridManager.CanPlaceBlock(shape, targetOrigin.x, targetOrigin.y);
-        gridManager.HighlightCells(shape, targetOrigin.x, targetOrigin.y, canPlace, blockColor);
+        if (blockType == BlockType.Dynamite)
+        {
+            gridManager.HighlightArea(targetOrigin.x, targetOrigin.y, explosionRadius, canPlace, blockColor);
+        }
+        else
+        {
+            gridManager.HighlightCells(shape, targetOrigin.x, targetOrigin.y, canPlace, blockColor);
+        }
     }
 }

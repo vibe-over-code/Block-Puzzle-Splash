@@ -152,6 +152,39 @@ public class GridM : MonoBehaviour
         AudioManager.Instance?.PlayBlockPlaceSound();
     }
 
+    public void PlaceDynamite(int x, int y, int explosionRadius, Color blockColor)
+    {
+        OccupyCellWithColor(x, y, blockColor);
+        AddScoreForBlock(new Vector2Int[] { Vector2Int.zero });
+        ExplodeCellsAround(x, y, Mathf.Max(0, explosionRadius));
+        AudioManager.Instance?.PlayBlockPlaceSound();
+    }
+
+    void ExplodeCellsAround(int centerX, int centerY, int explosionRadius)
+    {
+        int clearedCells = 0;
+
+        for (int x = centerX - explosionRadius; x <= centerX + explosionRadius; x++)
+        {
+            for (int y = centerY - explosionRadius; y <= centerY + explosionRadius; y++)
+            {
+                if (x < 0 || x >= width || y < 0 || y >= height)
+                    continue;
+
+                Vector2 flyDirection = new Vector2(x - centerX, y - centerY);
+                if (flyDirection == Vector2.zero)
+                {
+                    flyDirection = Vector2.up;
+                }
+
+                FreeCellWithSandEffect(x, y, flyDirection.normalized);
+                clearedCells++;
+            }
+        }
+
+        Debug.Log($"Dynamite exploded at ({centerX},{centerY}). Cleared {clearedCells} cells.");
+    }
+
     private List<int> rowsToClear = new List<int>();
     private List<int> columnsToClear = new List<int>();
 
@@ -318,6 +351,25 @@ public class GridM : MonoBehaviour
                 if (cells[cellX, cellY] != null)
                 {
                     cells[cellX, cellY].SetHighlight(canPlace, previewColor);
+                }
+            }
+        }
+    }
+
+    public void HighlightArea(int centerX, int centerY, int radius, bool canPlace, Color previewColor)
+    {
+        ClearHighlight();
+
+        for (int x = centerX - radius; x <= centerX + radius; x++)
+        {
+            for (int y = centerY - radius; y <= centerY + radius; y++)
+            {
+                if (x >= 0 && x < width && y >= 0 && y < height)
+                {
+                    if (cells[x, y] != null)
+                    {
+                        cells[x, y].SetHighlight(canPlace, previewColor);
+                    }
                 }
             }
         }
