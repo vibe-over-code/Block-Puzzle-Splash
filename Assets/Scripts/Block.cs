@@ -93,6 +93,7 @@ public class Block : MonoBehaviour
             }
 
             BlockSpawner spawner = FindFirstObjectByType<BlockSpawner>();
+            gameObject.SetActive(false);
             if (spawner != null)
             {
                 spawner.OnBlockPlaced();

@@ -446,4 +446,30 @@ public class GridM : MonoBehaviour
         Debug.Log("No available moves. GAME OVER.");
         return false;
     }
+
+    public bool CanPlaceAnyBlock(Block[] blocks)
+    {
+        foreach (Block blockComponent in blocks)
+        {
+            if (blockComponent == null || !blockComponent.isActiveAndEnabled)
+                continue;
+
+            Vector2Int[] shape = blockComponent.shape;
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    if (CanPlaceBlock(shape, x, y))
+                    {
+                        Debug.Log($"Can place spawned block {blockComponent.name} at ({x},{y}).");
+                        return true;
+                    }
+                }
+            }
+        }
+
+        Debug.Log("No spawned blocks can be placed.");
+        return false;
+    }
 }

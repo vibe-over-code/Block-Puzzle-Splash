@@ -1,35 +1,66 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MainMenuController : MonoBehaviour
 {
-    // Имя сцены, где находится ваша игра (сетка, блоки и т.д.)
-    // Согласно вашему запросу, это "SampleScene"
     [SerializeField] private string gameSceneName = "SampleScene";
+    [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private Slider musicVolumeSlider;
+    [SerializeField] private Slider effectsVolumeSlider;
+
+    private void Awake()
+    {
+        InitializeSettings();
+    }
 
     public void StartGame()
     {
-        Debug.Log("Запуск игры...");
+        Debug.Log("Start game");
         SceneManager.LoadScene(gameSceneName);
     }
 
     public void OpenSettings()
     {
-        Debug.Log("Нажата кнопка настроек!");
-        // TODO: Реализуйте логику панели настроек здесь (например, включите Canvas настроек)
-        // Пока что просто выводим сообщение в консоль.
+        if (settingsPanel != null)
+        {
+            settingsPanel.SetActive(true);
+        }
+    }
+
+    public void CloseSettings()
+    {
+        if (settingsPanel != null)
+        {
+            settingsPanel.SetActive(false);
+        }
     }
 
     public void ExitGame()
     {
-        Debug.Log("Выход из игры...");
+        Debug.Log("Exit game");
 
-        // Application.Quit() не работает в редакторе Unity.
-        // UnityEditor.EditorApplication.isPlaying = false; останавливает режим игры в редакторе.
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else
         Application.Quit();
 #endif
+    }
+
+    private void InitializeSettings()
+    {
+        if (musicVolumeSlider != null)
+        {
+            musicVolumeSlider.SetValueWithoutNotify(AudioManager.GetMusicVolume());
+            musicVolumeSlider.onValueChanged.AddListener(AudioManager.SetMusicVolume);
+        }
+
+        if (effectsVolumeSlider != null)
+        {
+            effectsVolumeSlider.SetValueWithoutNotify(AudioManager.GetEffectsVolume());
+            effectsVolumeSlider.onValueChanged.AddListener(AudioManager.SetEffectsVolume);
+        }
+
+        CloseSettings();
     }
 }

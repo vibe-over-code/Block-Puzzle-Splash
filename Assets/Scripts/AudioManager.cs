@@ -2,7 +2,14 @@ using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
+    private const string MusicVolumeKey = "MusicVolume";
+    private const string EffectsVolumeKey = "EffectsVolume";
+
     public static AudioManager Instance { get; private set; }
+
+    [Header("Music")]
+    [SerializeField] private AudioClip musicClip;
+    [SerializeField] private bool playMusicOnAwake;
 
     [Header("Sound Effects")]
     [SerializeField] private AudioClip lineClearSound;
@@ -10,7 +17,8 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip blocksRefreshSound;
     [SerializeField] private AudioClip blockPlaceSound;
     
-    private AudioSource audioSource;
+    private AudioSource effectsSource;
+    private AudioSource musicSource;
 
     private void Awake()
     {
@@ -18,11 +26,66 @@ public class AudioManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            audioSource = gameObject.AddComponent<AudioSource>();
+            effectsSource = gameObject.AddComponent<AudioSource>();
+            musicSource = gameObject.AddComponent<AudioSource>();
+            musicSource.loop = true;
+
+            ApplyVolumes();
+
+            if (playMusicOnAwake && musicClip != null)
+            {
+                PlayMusic(musicClip);
+            }
         }
         else
         {
-            Destroy(gameObject);
+            Destroy(this);
+        }
+    }
+
+    public static float GetMusicVolume()
+    {
+        return PlayerPrefs.GetFloat(MusicVolumeKey, 1f);
+    }
+
+    public static float GetEffectsVolume()
+    {
+        return PlayerPrefs.GetFloat(EffectsVolumeKey, 1f);
+    }
+
+    public static void SetMusicVolume(float volume)
+    {
+        PlayerPrefs.SetFloat(MusicVolumeKey, Mathf.Clamp01(volume));
+        PlayerPrefs.Save();
+        Instance?.ApplyVolumes();
+    }
+
+    public static void SetEffectsVolume(float volume)
+    {
+        PlayerPrefs.SetFloat(EffectsVolumeKey, Mathf.Clamp01(volume));
+        PlayerPrefs.Save();
+        Instance?.ApplyVolumes();
+    }
+
+    public void PlayMusic(AudioClip clip)
+    {
+        if (clip == null || musicSource == null)
+            return;
+
+        musicSource.clip = clip;
+        musicSource.Play();
+    }
+
+    private void ApplyVolumes()
+    {
+        if (musicSource != null)
+        {
+            musicSource.volume = GetMusicVolume();
+        }
+
+        if (effectsSource != null)
+        {
+            effectsSource.volume = GetEffectsVolume();
         }
     }
 
@@ -32,11 +95,11 @@ public class AudioManager : MonoBehaviour
         
         if (clearedLines >= 3 && comboClearSound != null)
         {
-            audioSource.PlayOneShot(comboClearSound);
+            effectsSource.PlayOneShot(comboClearSound);
         }
         else if (lineClearSound != null)
         {
-            audioSource.PlayOneShot(lineClearSound);
+            effectsSource.PlayOneShot(lineClearSound);
         }
     }
 
@@ -44,7 +107,7 @@ public class AudioManager : MonoBehaviour
     {
         if (blocksRefreshSound != null)
         {
-            audioSource.PlayOneShot(blocksRefreshSound);
+            effectsSource.PlayOneShot(blocksRefreshSound);
         }
     }
 
@@ -52,7 +115,7 @@ public class AudioManager : MonoBehaviour
     {
         if (blockPlaceSound != null)
         {
-            audioSource.PlayOneShot(blockPlaceSound);
+            effectsSource.PlayOneShot(blockPlaceSound);
         }
     }
 }

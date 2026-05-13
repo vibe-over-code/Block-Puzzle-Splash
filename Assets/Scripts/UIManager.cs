@@ -3,8 +3,8 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    public Button restartButton; 
-    public Button refreshButton;  
+    public Button restartButton;
+    public Button refreshButton;
 
     private GridM gridManager;
     private BlockSpawner blockSpawner;
@@ -23,9 +23,13 @@ public class UIManager : MonoBehaviour
         UpdateRefreshButtonState();
     }
 
+    public bool CanRefreshBlocks()
+    {
+        return !hasRefreshed;
+    }
+
     private void RestartGame()
     {
-
         if (gridManager != null)
         {
             gridManager.ClearAllCells();
@@ -41,7 +45,7 @@ public class UIManager : MonoBehaviour
 
         if (blockSpawner != null)
         {
-            blockSpawner.enabled = true; 
+            blockSpawner.enabled = true;
             blockSpawner.SpawnBlocks();
         }
     }
@@ -50,20 +54,19 @@ public class UIManager : MonoBehaviour
     {
         if (hasRefreshed)
         {
-            Debug.Log("Обновление блоков доступно только один раз за игру!");
+            Debug.Log("Blocks can be refreshed only once per game.");
             return;
         }
 
-        Debug.Log("Обновляем блоки...");
+        Debug.Log("Refreshing blocks...");
+        hasRefreshed = true;
+        UpdateRefreshButtonState();
 
         if (blockSpawner != null)
         {
             blockSpawner.RefreshBlocks();
             AudioManager.Instance?.PlayBlocksRefreshSound();
         }
-
-        hasRefreshed = true;
-        UpdateRefreshButtonState();
     }
 
     private void UpdateRefreshButtonState()

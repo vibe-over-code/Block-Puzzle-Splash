@@ -1,5 +1,7 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class BlockSpawner : MonoBehaviour
 {
@@ -10,23 +12,34 @@ public class BlockSpawner : MonoBehaviour
     public float spawnPadding = 0.25f;
     public int maxVerticalBlocks = 9;
 
+    [Header("Game over")]
+    [SerializeField] private GameObject gameOverPanel;
+    [SerializeField] private float gameOverDelay = 2f;
+    [SerializeField] private string mainMenuSceneName = "MainMenu";
+
     [Header("Special blocks")]
     [Range(0f, 1f)]
     [SerializeField] private float dynamiteSpawnChance = 0.12f;
 
     private int currentBlocksCount;
     private bool isRespawning = false;
+    private bool gameOverTriggered = false;
     private GridM gridManager;
 
     private void Start()
     {
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(false);
+        }
+
         gridManager = FindFirstObjectByType<GridM>();
         SpawnBlocks();
     }
 
     public void SpawnBlocks()
     {
-        if (isRespawning) return;
+        if (isRespawning || gameOverTriggered) return;
         isRespawning = true;
 
         ClearBlocks();
@@ -161,12 +174,15 @@ public class BlockSpawner : MonoBehaviour
         Block[] blocks = FindObjectsByType<Block>(FindObjectsSortMode.None);
         foreach (Block block in blocks)
         {
+            block.gameObject.SetActive(false);
             Destroy(block.gameObject);
         }
     }
 
     public void OnBlockPlaced()
     {
+        if (gameOverTriggered) return;
+
         currentBlocksCount--;
         Debug.Log($"Block placed. Blocks left: {currentBlocksCount}");
 
@@ -188,31 +204,55 @@ public class BlockSpawner : MonoBehaviour
 
     public void CheckGameOver()
     {
+        if (gameOverTriggered)
+            return;
+
         if (gridManager == null)
         {
             gridManager = FindFirstObjectByType<GridM>();
         }
 
-        bool canPlace = gridManager.CanPlaceAnyBlock(blockPrefabs);
+        if (gridManager == null)
+            return;
 
-        if (!canPlace)
+        Block[] spawnedBlocks = FindObjectsByType<Block>(FindObjectsSortMode.None);
+        bool canPlace = gridManager.CanPlaceAnyBlock(spawnedBlocks);
+        bool canRefresh = false;
+
+        UIManager uiManager = FindFirstObjectByType<UIManager>();
+        if (uiManager != null)
         {
-            Debug.Log("GAME OVER! No available moves.");
+            canRefresh = uiManager.CanRefreshBlocks();
+        }
+
+        if (!canPlace && !canRefresh)
+        {
+            Debug.Log("GAME OVER! No available moves and refresh is unavailable.");
             OnGameOver();
         }
     }
 
     private void OnGameOver()
     {
+        gameOverTriggered = true;
+
         Block[] blocks = FindObjectsByType<Block>(FindObjectsSortMode.None);
         foreach (Block block in blocks)
         {
             block.enabled = false;
         }
 
-        Debug.Log("=========================================");
-        Debug.Log("              GAME OVER!                 ");
-        Debug.Log("   Press Restart to continue             ");
-        Debug.Log("=========================================");
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(true);
+        }
+
+        StartCoroutine(ReturnToMainMenuAfterDelay());
+    }
+
+    private IEnumerator ReturnToMainMenuAfterDelay()
+    {
+        yield return new WaitForSeconds(gameOverDelay);
+        SceneManager.LoadScene(mainMenuSceneName);
     }
 }
