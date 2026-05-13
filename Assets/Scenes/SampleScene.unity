@@ -1894,11 +1894,13 @@ MonoBehaviour:
   - {fileID: 5856728327311389738, guid: accaa0203e4012a49a920d20b3f03696, type: 3}
   - {fileID: 5856728327311389738, guid: a9022b3ec1c9d2a408513691521c9880, type: 3}
   - {fileID: 5856728327311389738, guid: 31f284f6452dfc54b8122fc57e000835, type: 3}
+  - {fileID: 1000000000000000001, guid: 6712e538338d456eacf227928e9130a7, type: 3}
   spawnAreaStart: {fileID: 1323606418}
   blocksCount: 3
   spacing: 3.5
   spawnPadding: 0.25
   maxVerticalBlocks: 9
+  dynamiteSpawnChance: 0.12
 --- !u!4 &2097594165
 Transform:
   m_ObjectHideFlags: 0

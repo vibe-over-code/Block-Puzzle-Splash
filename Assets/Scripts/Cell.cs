@@ -17,6 +17,7 @@ public class Cell : MonoBehaviour
     private bool isHighlighted = false;
     private Material runtimeSpecialMaterial;
     private Material runtimeSandMaterial;
+    private Material runtimeExplosionMaterial;
 
     void Start()
     {
@@ -53,6 +54,21 @@ public class Cell : MonoBehaviour
         if (isOccupied)
         {
             SpawnSandEffect(flyDirection);
+        }
+
+        Free();
+    }
+
+    public void FreeWithExplosionEffect(Vector2 flyDirection)
+    {
+        FreeWithExplosionEffect(flyDirection, transform.position);
+    }
+
+    public void FreeWithExplosionEffect(Vector2 flyDirection, Vector3 blastCenter)
+    {
+        if (isOccupied)
+        {
+            SpawnExplosionEffect(flyDirection, blastCenter);
         }
 
         Free();
@@ -130,6 +146,26 @@ public class Cell : MonoBehaviour
         StartCoroutine(AnimateSandEffect(effectObject, effectRenderer, flyDirection.normalized));
     }
 
+    void SpawnExplosionEffect(Vector2 flyDirection, Vector3 blastCenter)
+    {
+        if (spriteRenderer == null || spriteRenderer.sprite == null)
+            return;
+
+        GameObject effectObject = new GameObject("Block Explosion Clear FX");
+        effectObject.transform.position = transform.position;
+        effectObject.transform.rotation = transform.rotation;
+        effectObject.transform.localScale = transform.lossyScale;
+
+        SpriteRenderer effectRenderer = effectObject.AddComponent<SpriteRenderer>();
+        effectRenderer.sprite = spriteRenderer.sprite;
+        effectRenderer.color = currentColor;
+        effectRenderer.sortingLayerID = spriteRenderer.sortingLayerID;
+        effectRenderer.sortingOrder = spriteRenderer.sortingOrder + 8;
+        effectRenderer.sharedMaterial = GetExplosionMaterial();
+
+        StartCoroutine(AnimateExplosionEffect(effectObject, effectRenderer, flyDirection.normalized, blastCenter));
+    }
+
     IEnumerator AnimateSandEffect(GameObject effectObject, SpriteRenderer effectRenderer, Vector2 flyDirection)
     {
         if (flyDirection == Vector2.zero)
@@ -161,6 +197,55 @@ public class Cell : MonoBehaviour
         Destroy(effectObject);
     }
 
+    IEnumerator AnimateExplosionEffect(GameObject effectObject, SpriteRenderer effectRenderer, Vector2 flyDirection, Vector3 blastCenter)
+    {
+        if (flyDirection == Vector2.zero)
+        {
+            flyDirection = Random.insideUnitCircle.normalized;
+        }
+
+        Vector3 startPosition = effectObject.transform.position;
+        Vector3 fromCenter = startPosition - blastCenter;
+        Vector2 radialDirection = fromCenter.sqrMagnitude > 0.0001f
+            ? new Vector2(fromCenter.x, fromCenter.y).normalized
+            : flyDirection.normalized;
+        Vector2 tangentDirection = new Vector2(-radialDirection.y, radialDirection.x);
+        float swirlSign = Mathf.Sign(Vector2.Dot(tangentDirection, flyDirection));
+        if (Mathf.Approximately(swirlSign, 0f))
+        {
+            swirlSign = Random.value < 0.5f ? -1f : 1f;
+        }
+
+        float distanceFromCenter = Mathf.Max(fromCenter.magnitude, 0.01f);
+        float radialDistance = clearEffectFlyDistance * 1.28f + distanceFromCenter * 0.18f;
+        Vector3 endPosition = startPosition + new Vector3(radialDirection.x, radialDirection.y, 0f) * radialDistance;
+        float rotationDirection = swirlSign * Random.Range(10f, 26f);
+        MaterialPropertyBlock properties = new MaterialPropertyBlock();
+        float elapsedTime = 0f;
+
+        while (elapsedTime < clearEffectDuration)
+        {
+            float progress = elapsedTime / clearEffectDuration;
+            float easedProgress = 1f - Mathf.Pow(1f - progress, 3f);
+            float ringPush = Mathf.Sin(progress * Mathf.PI) * clearEffectFlyDistance * 0.12f;
+            Vector3 swirlOffset = new Vector3(tangentDirection.x, tangentDirection.y, 0f) * ringPush * swirlSign;
+            effectObject.transform.position = Vector3.Lerp(startPosition, endPosition, easedProgress) + swirlOffset;
+            effectObject.transform.rotation = Quaternion.Euler(0f, 0f, rotationDirection * easedProgress);
+            effectObject.transform.localScale = transform.lossyScale * Mathf.Lerp(1.04f, 0.76f, easedProgress);
+
+            effectRenderer.GetPropertyBlock(properties);
+            properties.SetFloat("_Progress", progress);
+            properties.SetFloat("_ScatterAmount", easedProgress);
+            properties.SetVector("_BlastDirection", new Vector4(radialDirection.x, radialDirection.y, 0f, 0f));
+            effectRenderer.SetPropertyBlock(properties);
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        Destroy(effectObject);
+    }
+
     Material GetSandMaterial()
     {
         if (runtimeSandMaterial == null)
@@ -173,6 +258,20 @@ public class Cell : MonoBehaviour
         }
 
         return runtimeSandMaterial;
+    }
+
+    Material GetExplosionMaterial()
+    {
+        if (runtimeExplosionMaterial == null)
+        {
+            Shader shader = Shader.Find("BlockPuzzle/BlockExplosionDissolveSprite");
+            if (shader != null)
+            {
+                runtimeExplosionMaterial = new Material(shader);
+            }
+        }
+
+        return runtimeExplosionMaterial;
     }
 
     public void SetHighlight(bool canPlace)

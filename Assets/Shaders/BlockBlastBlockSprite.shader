@@ -143,17 +143,36 @@ Shader "BlockPuzzle/BlockBlastBlockSprite"
                 highlight *= smoothstep(0.06, 0.24, uv.x) * smoothstep(0.06, 0.2, 1.0 - uv.y);
                 finalRGB += highlight * 0.34;
 
-                float topSheen = smoothstep(0.18, 0.88, uv.x) * smoothstep(0.74, 0.96, uv.y) * (1.0 - smoothstep(0.84, 1.0, uv.y));
-                finalRGB += topSheen * 0.18;
-                finalRGB += rimMask * (top + left) * 0.22;
-                finalRGB -= rimMask * (bottom + right) * 0.16;
-
                 float isDynamite = 1.0 - saturate(abs(_BlockType - 1.0));
                 float isFreeze = 1.0 - saturate(abs(_BlockType - 2.0));
-                float stripe = step(0.5, frac((uv.x + uv.y) * 6.0));
-                finalRGB = lerp(finalRGB, finalRGB * lerp(0.86, 1.18, stripe) + float3(0.55, 0.12, 0.02) * 0.18, isDynamite * 0.55);
-                finalRGB = lerp(finalRGB, lerp(finalRGB, float3(0.62, 0.92, 1.0), 0.42) + highlight * 0.18, isFreeze * 0.7);
 
+                // --- НОВЫЙ ВИЗУАЛ ДИНАМИТА (TNT) ---
+                // Вертикальные шашки (квадратно и примитивно)
+                float sticks = step(0.12, frac(uv.x * 3.0 + 0.5));
+                float3 tntRed = float3(0.85, 0.12, 0.1);
+                float3 tntDark = float3(0.5, 0.05, 0.05);
+                float3 dynaBase = lerp(tntDark, tntRed, sticks);
+
+                // Черная обмотка (горизонтальная лента)
+                float band = step(0.38, uv.y) * step(uv.y, 0.58);
+                dynaBase = lerp(dynaBase, float3(0.1, 0.1, 0.1), band);
+
+                // Жирный Г-образный фитиль
+                float fuseV = step(0.47, uv.x) * step(uv.x, 0.53) * step(0.75, uv.y) * step(uv.y, 0.9);
+                float fuseH = step(0.5, uv.x) * step(uv.x, 0.75) * step(0.86, uv.y) * step(uv.y, 0.91);
+                float fuseMask = saturate(fuseV + fuseH);
+                dynaBase = lerp(dynaBase, float3(0.35, 0.25, 0.15), fuseMask);
+
+                // Квадратная искра с легким мерцанием
+                float sparkPulse = 0.8 + 0.2 * sin(_Time.y * 15.0);
+                float spark = step(0.72, uv.x) * step(uv.x, 0.85) * step(0.84, uv.y) * step(uv.y, 0.96);
+                dynaBase = lerp(dynaBase, float3(1.0, 0.9, 0.1) * sparkPulse, spark);
+
+                // Применяем результат динамита
+                finalRGB = lerp(finalRGB, dynaBase * (0.9 + highlight * 0.3), isDynamite);
+
+                // Остальное (заморозка и пустое состояние) без изменений
+                finalRGB = lerp(finalRGB, lerp(finalRGB, float3(0.62, 0.92, 1.0), 0.42) + highlight * 0.18, isFreeze * 0.7);
                 finalRGB = lerp(float3(0.105, 0.125, 0.16) + rimMask * 0.035, finalRGB, occupied);
 
                 fixed4 color;

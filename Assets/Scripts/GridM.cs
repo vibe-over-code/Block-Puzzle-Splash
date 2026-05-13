@@ -92,6 +92,23 @@ public class GridM : MonoBehaviour
         }
     }
 
+    public void FreeCellWithExplosionEffect(int x, int y, Vector2 flyDirection)
+    {
+        FreeCellWithExplosionEffect(x, y, flyDirection, GridToWorldPosition(x, y));
+    }
+
+    public void FreeCellWithExplosionEffect(int x, int y, Vector2 flyDirection, Vector3 blastCenter)
+    {
+        if (x < 0 || x >= width || y < 0 || y >= height)
+            return;
+
+        gridState[x, y] = false;
+        if (cells[x, y] != null)
+        {
+            cells[x, y].FreeWithExplosionEffect(flyDirection, blastCenter);
+        }
+    }
+
     public void PrintGridState()
     {
         string grid = "";
@@ -163,6 +180,7 @@ public class GridM : MonoBehaviour
     void ExplodeCellsAround(int centerX, int centerY, int explosionRadius)
     {
         int clearedCells = 0;
+        Vector3 blastCenter = GridToWorldPosition(centerX, centerY);
 
         for (int x = centerX - explosionRadius; x <= centerX + explosionRadius; x++)
         {
@@ -177,7 +195,7 @@ public class GridM : MonoBehaviour
                     flyDirection = Vector2.up;
                 }
 
-                FreeCellWithSandEffect(x, y, flyDirection.normalized);
+                FreeCellWithExplosionEffect(x, y, flyDirection.normalized, blastCenter);
                 clearedCells++;
             }
         }

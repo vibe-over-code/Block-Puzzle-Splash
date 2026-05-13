@@ -154,6 +154,7 @@ public class Block : MonoBehaviour
         spriteRenderer.GetPropertyBlock(properties);
         properties.SetColor("_BaseColor", GetDisplayColor());
         properties.SetFloat("_IsOccupied", 1f);
+        properties.SetFloat("_BlockType", blockType == BlockType.Dynamite ? 1f : 0f);
         spriteRenderer.SetPropertyBlock(properties);
     }
 

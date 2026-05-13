@@ -10,6 +10,10 @@ public class BlockSpawner : MonoBehaviour
     public float spawnPadding = 0.25f;
     public int maxVerticalBlocks = 9;
 
+    [Header("Special blocks")]
+    [Range(0f, 1f)]
+    [SerializeField] private float dynamiteSpawnChance = 0.12f;
+
     private int currentBlocksCount;
     private bool isRespawning = false;
     private GridM gridManager;
@@ -123,8 +127,33 @@ public class BlockSpawner : MonoBehaviour
 
     GameObject PickRandomSpawnPrefab()
     {
-        int randomIndex = Random.Range(0, blockPrefabs.Length);
-        return blockPrefabs[randomIndex];
+        List<GameObject> normalBlocks = new List<GameObject>();
+        List<GameObject> dynamiteBlocks = new List<GameObject>();
+
+        foreach (GameObject blockPrefab in blockPrefabs)
+        {
+            if (blockPrefab == null)
+                continue;
+
+            Block block = blockPrefab.GetComponent<Block>();
+            if (block != null && block.blockType == BlockType.Dynamite)
+            {
+                dynamiteBlocks.Add(blockPrefab);
+            }
+            else
+            {
+                normalBlocks.Add(blockPrefab);
+            }
+        }
+
+        bool shouldSpawnDynamite = dynamiteBlocks.Count > 0 && Random.value < dynamiteSpawnChance;
+        List<GameObject> spawnPool = shouldSpawnDynamite || normalBlocks.Count == 0 ? dynamiteBlocks : normalBlocks;
+
+        if (spawnPool.Count == 0)
+            return null;
+
+        int randomIndex = Random.Range(0, spawnPool.Count);
+        return spawnPool[randomIndex];
     }
 
     void ClearBlocks()
